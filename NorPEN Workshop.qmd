@@ -39,7 +39,7 @@ This does NOT imply lack of individual treatment effects!
 
 ## Heterogeneity of Treatment Effects
 
-![](images/1-s2.0-S0002870324001145-gr3_lrg.jpg){fig-align="center"}
+<img src="HTEs.jpg" alt="Caption" width="500"/>
 
 ## Individual Treatment Effect (ITE)
 
@@ -202,13 +202,107 @@ print(paste("IPTW ATE:", round(ATE, 4)))
 
 ## Causal Meta-Learners
 
+<br>
+
+-   Uses base-learners
+-   Multi-step process
+
+::: callout-tip
+## Base-learner: Any machine learning algorithm used as a building block in a larger modeling framework
+:::
+
 ## S-Learner
 
-<img src="SLearner.png" alt="Caption" width="500"/>
+<figure>
+
+<img src="SLearner.png" width="1000"/>
+
+<figcaption>The S-learner treats the treatment indicator as just another predictor</figcaption>
+
+</figure>
 
 ## Implement S-Learner
 
+```{r}
+s_model <- glm(death ~ qsmk + age + sex + race + as.factor(education) + smokeintensity + smokeyrs + as.factor(active) + wt71 + as.factor(exercise), data = nhefs, family = binomial())
+
+
+# Create prediction datasets
+pred_data1 <- nhefs
+pred_data1$qsmk <- 1  # Set everyone to treated
+
+pred_data0 <- nhefs
+pred_data0$qsmk <- 0  # Set everyone to control
+
+# Get potential outcomes for everyone
+nhefs$Y1_hat <- predict(s_model, newdata = pred_data1, type = "response")
+nhefs$Y0_hat <- predict(s_model, newdata = pred_data0, type = "response")
+nhefs$ITE <- nhefs$Y1_hat - nhefs$Y0_hat
+
+
+
+```
+:::: {.columns}
+::: {.column width="50%"}
+
+```{r}
+# Display the first 10 rows of selected columns
+nhefs %>%
+  select(qsmk, death, Y1_hat, Y0_hat, ITE) %>%
+  head(10) %>%
+  print()
+
+# Calculate and print the Average Treatment Effect
+ate_s <- mean(nhefs$ITE)
+print(paste("S-learner ATE:", round(ate_s, 4)))
+```
+
+:::
+::: {.column width="50%"}
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+
+# Plot the distribution of Individual Treatment Effects
+nhefs %>%
+  ggplot(aes(x = ITE)) +
+  geom_density(fill = "lightblue", alpha = 0.5) +
+  geom_vline(xintercept = mean(nhefs$ITE),
+             color = "red", linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Distribution of Individual Treatment Effects",
+       x = "Individual Treatment Effect",
+       y = "Density") +
+  theme(plot.title = element_text(size = 12))
+```
+
+:::
+::::
+
+
+## S-Learner weakness
+<br>
+
+::: {.callout-warning}
+If the treatment effect is small, some base-learners regularise it away!
+:::
+
+
+
 ## T-Learner
+
+
+<figure>
+
+<img src="TLearner.png" width="900"/>
+
+<figcaption>T-learner trains an ML model on T = 1 and another at T = 0; at prediction time, it uses both models to estimate the difference between treatment and control</figcaption>
+
+</figure>
+
+
+
 
 ## Implement T-Learner
 
