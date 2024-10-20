@@ -65,6 +65,7 @@ library(tableone)
 
 ```{r}
 glimpse(nhefs)
+glimpse(nhefs_codebook)
 ```
 
 ## A Table 1
