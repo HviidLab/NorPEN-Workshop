@@ -285,7 +285,7 @@ nhefs %>%
 <br>
 
 ::: {.callout-warning}
-If the treatment effect is small, some base-learners regularise it away!
+If the treatment effect is small, some base-learners drop it!
 :::
 
 
