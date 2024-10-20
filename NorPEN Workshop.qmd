@@ -16,6 +16,12 @@ slide-number: true
 
 ## What are we going to do today?
 
+-   Study Q: Is the association between quitting smoking and mortality heterogeneous?
+
+-   Data: 1,629 cigarette smokers who were interviewed in 1971 and 1982 and followed up until 1992.
+
+-   Methods: Estimate heterogeneous treatment effects using causal meta-learners
+
 ## A Simple Example
 
 <br> <br>
@@ -35,6 +41,18 @@ This does NOT imply lack of individual treatment effects!
 
 ![](images/1-s2.0-S0002870324001145-gr3_lrg.jpg){fig-align="center"}
 
+## Individual Treatment Effect (ITE)
+
+<br> Formal Definition: $$
+\text{ITE}_i = Y_i(1) - Y_i(0)
+$$ where: - $Y_i(1)$ potential outcome under T=1 for individual $i$ - $Y_i(0)$ potential outcome under T=0 for individual $i$ <br>
+
+::: callout-tip
+## The Fundamental Problem of Causal Inference:
+
+We can never observe both $Y_i(1)$ and $Y_i(0)$ for the same individual
+:::
+
 ## Average Treatment Effect (ATE)
 
 <br>
@@ -42,16 +60,28 @@ This does NOT imply lack of individual treatment effects!
 Formal Definition:
 
 $$
-\text{ATE} = E[Y_t - Y_{t'}] = P(y_t) - P(y_{t'})
+\text{ATE} = E[Y(1) - Y(0)] = E[Y(1)] - E(Y(0))
 $$ where:
 
-\- $Y_t$ potential outcome under treatment
+\- $Y(1)$ potential outcome under treatment
 
-\- $Y_{t'}$ potential outcome under control
+\- $Y(0)$ potential outcome under control
 
-\- $P(y_t)$ probability of positive outcome under treatment
+\- $E[Y(1)]$ Average outcome if all treated
 
-\- $P(y_{t'})$ probability of positive outcome under control
+\- $E[Y(0)]$ Average outcome if all control
+
+## Conditional Average Treatment Effect (CATE)
+
+Formal Definition: $$
+\text{CATE}(x) = E[Y(1) | X=x] - E[Y(0) | X = x]
+$$ where:
+
+\- $X = x$ represents specific covariate values
+
+\- $E[Y(1) | X = x]$ Average outcome if all treated in subgroup
+
+\- $E[Y(0) | X = x]$ Average outcome if all control in subgroup <br>
 
 ## NHEFS data
 
@@ -61,11 +91,11 @@ $$ where:
 library(tidyverse)
 library(causaldata)
 library(tableone)
+library(gt)
 ```
 
 ```{r}
 glimpse(nhefs)
-glimpse(nhefs_codebook)
 ```
 
 ## A Table 1
@@ -84,6 +114,16 @@ table1 <- CreateTableOne(vars = vars, strata = "qsmk", data = nhefs, factorVars 
 
 # Print the Table 1
 print(table1, showAllLevels = TRUE)
+```
+
+## NHEFS Codebook
+
+```{r}
+
+nhefs_codebook %>%
+  filter(variable %in% c(vars, "qsmk", "death")) %>%
+  gt() %>%
+  tab_header(title = "NHEFS Codebook - Selected Variables")
 ```
 
 ## A Table 2
@@ -111,6 +151,7 @@ print(paste("Crude ATE:", crude_ate))
 ```
 
 ## ATE using IPTW
+
 ```{r}
 #| fig.height: 8
 #| fig.width: 10
@@ -159,18 +200,11 @@ ATE <- treated_mean - control_mean
 print(paste("IPTW ATE:", round(ATE, 4)))
 ```
 
-
-## Potential Outcomes Framework
-
-## HTEs
-
--   ATE
-
--   CATE - HTE
-
--   ITE - HTE
+## Causal Meta-Learners
 
 ## S-Learner
+
+<img src="SLearner.png" alt="Caption" width="500"/>
 
 ## Implement S-Learner
 

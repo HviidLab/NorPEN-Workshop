@@ -343,6 +343,11 @@ Anders Hviid
 </section>
 <section id="what-are-we-going-to-do-today" class="slide level2">
 <h2>What are we going to do today?</h2>
+<ul>
+<li><p>Study Q: Is the association between quitting smoking and mortality heterogeneous?</p></li>
+<li><p>Data: 1,629 cigarette smokers who were interviewed in 1971 and 1982 and followed up until 1992.</p></li>
+<li><p>Methods: Estimate heterogeneous treatment effects using causal meta-learners</p></li>
+</ul>
 </section>
 <section id="a-simple-example" class="slide level2">
 <h2>A Simple Example</h2>
@@ -376,17 +381,45 @@ Anders Hviid
 <h2>Heterogeneity of Treatment Effects</h2>
 
 <img data-src="images/1-s2.0-S0002870324001145-gr3_lrg.jpg" class="quarto-figure quarto-figure-center r-stretch"></section>
+<section id="individual-treatment-effect-ite" class="slide level2">
+<h2>Individual Treatment Effect (ITE)</h2>
+<p><br> Formal Definition: <span class="math display">\[
+\text{ITE}_i = Y_i(1) - Y_i(0)
+\]</span> where: - <span class="math inline">\(Y_i(1)\)</span> potential outcome under T=1 for individual <span class="math inline">\(i\)</span> - <span class="math inline">\(Y_i(0)\)</span> potential outcome under T=0 for individual <span class="math inline">\(i\)</span> <br></p>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>The Fundamental Problem of Causal Inference:</strong></p>
+</div>
+<div class="callout-content">
+<p>We can never observe both <span class="math inline">\(Y_i(1)\)</span> and <span class="math inline">\(Y_i(0)\)</span> for the same individual</p>
+</div>
+</div>
+</div>
+</section>
 <section id="average-treatment-effect-ate" class="slide level2">
 <h2>Average Treatment Effect (ATE)</h2>
 <p><br></p>
 <p>Formal Definition:</p>
 <p><span class="math display">\[
-\text{ATE} = E[Y_t - Y_{t'}] = P(y_t) - P(y_{t'})
+\text{ATE} = E[Y(1) - Y(0)] = E[Y(1)] - E(Y(0))
 \]</span> where:</p>
-<p>- <span class="math inline">\(Y_t\)</span> potential outcome under treatment</p>
-<p>- <span class="math inline">\(Y_{t'}\)</span> potential outcome under control</p>
-<p>- <span class="math inline">\(P(y_t)\)</span> probability of positive outcome under treatment</p>
-<p>- <span class="math inline">\(P(y_{t'})\)</span> probability of positive outcome under control</p>
+<p>- <span class="math inline">\(Y(1)\)</span> potential outcome under treatment</p>
+<p>- <span class="math inline">\(Y(0)\)</span> potential outcome under control</p>
+<p>- <span class="math inline">\(E[Y(1)]\)</span> Average outcome if all treated</p>
+<p>- <span class="math inline">\(E[Y(0)]\)</span> Average outcome if all control</p>
+</section>
+<section id="conditional-average-treatment-effect-cate" class="slide level2">
+<h2>Conditional Average Treatment Effect (CATE)</h2>
+<p>Formal Definition: <span class="math display">\[
+\text{CATE}(x) = E[Y(1) | X=x] - E[Y(0) | X = x]
+\]</span> where:</p>
+<p>- <span class="math inline">\(X = x\)</span> represents specific covariate values</p>
+<p>- <span class="math inline">\(E[Y(1) | X = x]\)</span> Average outcome if all treated in subgroup</p>
+<p>- <span class="math inline">\(E[Y(0) | X = x]\)</span> Average outcome if all control in subgroup <br></p>
 </section>
 <section id="nhefs-data" class="slide level2">
 <h2>NHEFS data</h2>
@@ -462,12 +495,6 @@ $ id                &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 1
 $ censored          &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
 $ older             &lt;dbl&gt; 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0…</code></pre>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Rows: 64
-Columns: 2
-$ variable    &lt;chr&gt; "active", "age", "alcoholfreq", "alcoholhowmuch", "alcohol…
-$ description &lt;chr&gt; "IN YOUR USUAL DAY, HOW ACTIVE ARE YOU? IN 1971, 0:very ac…</code></pre>
-</div>
 </div>
 </section>
 <section id="a-table-1" class="slide level2">
@@ -499,6 +526,522 @@ $ description &lt;chr&gt; "IN YOUR USUAL DAY, HOW ACTIVE ARE YOU? IN 1971, 0:ver
 </div>
 </div>
 </section>
+<section id="nhefs-codebook" class="slide level2">
+<h2>NHEFS Codebook</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div id="gxhvborvua" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#gxhvborvua table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#gxhvborvua thead, #gxhvborvua tbody, #gxhvborvua tfoot, #gxhvborvua tr, #gxhvborvua td, #gxhvborvua th {
+  border-style: none;
+}
+
+#gxhvborvua p {
+  margin: 0;
+  padding: 0;
+}
+
+#gxhvborvua .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#gxhvborvua .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#gxhvborvua .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#gxhvborvua .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#gxhvborvua .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#gxhvborvua .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#gxhvborvua .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#gxhvborvua .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#gxhvborvua .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#gxhvborvua .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#gxhvborvua .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#gxhvborvua .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#gxhvborvua .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#gxhvborvua .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#gxhvborvua .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#gxhvborvua .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#gxhvborvua .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#gxhvborvua .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#gxhvborvua .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#gxhvborvua .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#gxhvborvua .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#gxhvborvua .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#gxhvborvua .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#gxhvborvua .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#gxhvborvua .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#gxhvborvua .gt_left {
+  text-align: left;
+}
+
+#gxhvborvua .gt_center {
+  text-align: center;
+}
+
+#gxhvborvua .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#gxhvborvua .gt_font_normal {
+  font-weight: normal;
+}
+
+#gxhvborvua .gt_font_bold {
+  font-weight: bold;
+}
+
+#gxhvborvua .gt_font_italic {
+  font-style: italic;
+}
+
+#gxhvborvua .gt_super {
+  font-size: 65%;
+}
+
+#gxhvborvua .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#gxhvborvua .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#gxhvborvua .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#gxhvborvua .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#gxhvborvua .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#gxhvborvua .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#gxhvborvua .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#gxhvborvua .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#gxhvborvua div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="header gt_heading">
+<th colspan="2" class="gt_heading gt_title gt_font_normal gt_bottom_border">NHEFS Codebook - Selected Variables</th>
+</tr>
+<tr class="odd gt_col_headings">
+<th id="variable" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">variable</th>
+<th id="description" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">description</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="variable">active</td>
+<td class="gt_row gt_left" headers="description">IN YOUR USUAL DAY, HOW ACTIVE ARE YOU? IN 1971, 0:very active, 1:moderately active, 2:inactive</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="variable">age</td>
+<td class="gt_row gt_left" headers="description">AGE IN 1971</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="variable">death</td>
+<td class="gt_row gt_left" headers="description">DEATH BY 1992, 1:YES, 0:NO</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="variable">education</td>
+<td class="gt_row gt_left" headers="description">AMOUNT OF EDUCATION BY 1971: 1: 8TH GRADE OR LESS, 2: HS DROPOUT, 3: HS, 4:COLLEGE DROPOUT, 5: COLLEGE OR MORE</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="variable">exercise</td>
+<td class="gt_row gt_left" headers="description">IN RECREATION, HOW MUCH EXERCISE? IN 1971, 0:much exercise,1:moderate exercise,2:little or no exercise</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="variable">qsmk</td>
+<td class="gt_row gt_left" headers="description">QUIT SMOKING BETWEEN 1ST QUESTIONNAIRE AND 1982, 1:YES, 0:NO</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="variable">race</td>
+<td class="gt_row gt_left" headers="description">0: WHITE 1: BLACK OR OTHER IN 1971</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="variable">sex</td>
+<td class="gt_row gt_left" headers="description">0: MALE 1: FEMALE</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="variable">smokeintensity</td>
+<td class="gt_row gt_left" headers="description">NUMBER OF CIGARETTES SMOKED PER DAY IN 1971</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="variable">smokeyrs</td>
+<td class="gt_row gt_left" headers="description">YEARS OF SMOKING</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="variable">wt71</td>
+<td class="gt_row gt_left" headers="description">WEIGHT IN KILOGRAMS IN 1971</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
 <section id="a-table-2" class="slide level2">
 <h2>A Table 2</h2>
 <p><br><br></p>
@@ -522,7 +1065,7 @@ Quitting Smoking (qsmk)  No Yes
 <div class="cell quarto-layout-panel" data-layout="[1,1]">
 <div class="quarto-layout-row">
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
-<p><img data-src="NorPEN-Workshop_files/figure-revealjs/unnamed-chunk-5-1.png" width="960"></p>
+<p><img data-src="NorPEN-Workshop_files/figure-revealjs/unnamed-chunk-6-1.png" width="960"></p>
 </div>
 <div class="cell-output cell-output-stdout quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
 <pre><code>[1] "IPTW ATE: 0.0101"</code></pre>
@@ -530,20 +1073,13 @@ Quitting Smoking (qsmk)  No Yes
 </div>
 </div>
 </section>
-<section id="potential-outcomes-framework" class="slide level2">
-<h2>Potential Outcomes Framework</h2>
-</section>
-<section id="htes" class="slide level2">
-<h2>HTEs</h2>
-<ul>
-<li><p>ATE</p></li>
-<li><p>CATE - HTE</p></li>
-<li><p>ITE - HTE</p></li>
-</ul>
+<section id="causal-meta-learners" class="slide level2">
+<h2>Causal Meta-Learners</h2>
 </section>
 <section id="s-learner" class="slide level2">
 <h2>S-Learner</h2>
-</section>
+
+<img src="SLearner.png" alt="Caption" width="500" class="r-stretch"></section>
 <section id="implement-s-learner" class="slide level2">
 <h2>Implement S-Learner</h2>
 </section>
