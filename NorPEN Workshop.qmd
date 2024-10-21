@@ -37,7 +37,9 @@ slide-number: true
 
 Average Treatment Effect = 0.1 <br>
 
+::: fragment
 This does NOT imply lack of individual treatment effects!
+:::
 
 ## Heterogeneity of Treatment Effects
 
@@ -49,10 +51,12 @@ This does NOT imply lack of individual treatment effects!
 \text{ITE}_i = Y_i(1) - Y_i(0)
 $$ where: - $Y_i(1)$ potential outcome under T=1 for individual $i$ - $Y_i(0)$ potential outcome under T=0 for individual $i$ <br>
 
+::: fragment
 ::: callout-tip
 ## The Fundamental Problem of Causal Inference:
 
 We can never observe both $Y_i(1)$ and $Y_i(0)$ for the same individual
+:::
 :::
 
 ## Average Treatment Effect (ATE)
@@ -202,6 +206,34 @@ ATE <- treated_mean - control_mean
 print(paste("IPTW ATE:", round(ATE, 4)))
 ```
 
+## Time to code!
+
+```{r}
+library(countdown)
+```
+
+-   A table 1 with the covariates of your choice
+
+-   A table 2 with crude and IPTW weighted ATEs
+
+```{r}
+countdown(
+  minutes = 5, style = "play",
+  warn_when = 1,    # Warning color change at 5 minutes
+  bottom = 0,          # Position from top
+  right = 0,        # Position from right
+  font_size = "2em", # Size of the timer
+  color_border = "#1b9e77",        # Border color
+  color_text = "#1b9e77",          # Text color
+  color_running = "#1b9e77",       # Color while running
+  color_warning = "#d95f02",       # Color when warn_when reached
+  color_finished = "#7570b3",      # Color when finished
+  margin = "0.5em",                # Margin around the timer
+  padding = "0.5em"                # Padding within the timer
+  )
+```
+
+
 ## Causal Meta-Learners
 
 <br>
@@ -209,9 +241,12 @@ print(paste("IPTW ATE:", round(ATE, 4)))
 -   Uses base-learners
 -   Multi-step process
 
+::: {.fragment}
 ::: callout-tip
 ## Base-learner: Any machine learning algorithm used as a building block in a larger modeling framework
 :::
+:::
+
 
 ## S-Learner
 
@@ -325,5 +360,23 @@ If the treatment effect is small, some base-learners drop it!
 -   ranked ITEs with 95% CIs colored in
 
 -   partial dependence plots
+
+## Which Causal Meta-Learner to choose?
+
+::: {style="font-size: 75%;"}
+
+| Scenario | S-Learner | T-Learner | X-Learner |
+|----------|-----------|-----------|------------|
+| **Sample Size** |
+| Large Sample | Good | Good | Good |
+| Small Sample | Good | May Struggle | May Struggle |
+| **Treatment Effect** |
+| Large Effects | Good | Good | Good |
+| Small Effects | May Struggle | Good | Good |
+| **Data Balance** |
+| Balanced Data | Good | Good | Good |
+| Imbalanced Data | Good | May Struggle | Good |
+
+:::
 
 ## What have we learned?
