@@ -4,13 +4,15 @@ author: Anders Hviid
 date: November 18, 2024
 format: 
   revealjs:
+    self-contained: false
+    embed-resources: false
     footer: "Causal Meta-Learner Workshop"
     #logo: logo.png
     theme: serif
     transition: slide
     echo: false
     output: true
-    chalkboard: true
+    chalkboard: false
 slide-number: true    
 ---
 
@@ -242,9 +244,9 @@ nhefs$ITE <- nhefs$Y1_hat - nhefs$Y0_hat
 
 
 ```
-:::: {.columns}
-::: {.column width="50%"}
 
+::: columns
+::: {.column width="50%"}
 ```{r}
 # Display the first 10 rows of selected columns
 nhefs %>%
@@ -256,10 +258,9 @@ nhefs %>%
 ate_s <- mean(nhefs$ITE)
 print(paste("S-learner ATE:", round(ate_s, 4)))
 ```
-
 :::
-::: {.column width="50%"}
 
+::: {.column width="50%"}
 ```{r}
 #| fig-width: 8
 #| fig-height: 6
@@ -276,22 +277,18 @@ nhefs %>%
        y = "Density") +
   theme(plot.title = element_text(size = 12))
 ```
-
 :::
-::::
-
+:::
 
 ## S-Learner weakness
+
 <br>
 
-::: {.callout-warning}
+::: callout-warning
 If the treatment effect is small, some base-learners drop it!
 :::
 
-
-
 ## T-Learner
-
 
 <figure>
 
@@ -300,9 +297,6 @@ If the treatment effect is small, some base-learners drop it!
 <figcaption>T-learner trains an ML model on T = 1 and another at T = 0; at prediction time, it uses both models to estimate the difference between treatment and control</figcaption>
 
 </figure>
-
-
-
 
 ## Implement T-Learner
 
