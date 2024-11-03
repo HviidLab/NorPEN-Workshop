@@ -18,32 +18,52 @@ slide-number: true
 
 ## What are we going to do today?
 
--   Study Q: Is the association between quitting smoking and mortality heterogeneous?
+-   13:00-13:30 Intro: What are heterogeneous treatment effects and meta-learners?
+-   13:30-14:15 Code session I
+-   14:15-14:30 Break
+-   14:30-15:00 Intermezzo: More on meta-learners
+-   15:00-15:45 Code session II
+-   15:45-16:00 Break
+-   16:00-16:30 Code session II continued
+-   16:30       Wrapping up
 
--   Data: 1,629 cigarette smokers who were interviewed in 1971 and 1982 and followed up until 1992.
 
--   Methods: Estimate heterogeneous treatment effects using causal meta-learners
 
-## A Simple Example
+## When ATE=0.1
 
-<br> <br>
+![](HTEs_q1.png)
 
-|             | Recovered | Not Recovered |
-|-------------|-----------|---------------|
-| **Treated** | 1500      | 1500          |
-| **Control** | 1200      | 1800          |
-
-<br>
-
-Average Treatment Effect = 0.1 <br>
-
-::: fragment
-This does NOT imply lack of individual treatment effects!
+::: notes
+Based on concepts from "Causal quartets: Different ways to attain the same average treatment effect" by Gelman, Hullman & Kennedy (2023)
 :::
+
+## Effect Heterogeneity
+
+![](HTEs_q2.png)
 
 ## Heterogeneity of Treatment Effects
 
 <img src="HTEs.jpg" alt="Caption" width="500"/>
+
+## Why Study Effect Heterogeneity?
+
+::: {style="font-size: 28px;"}
+::: fragment
+-   Real-world effects vary across:
+    -   Individuals
+    -   Populations
+    -   Situations
+    -   Time
+:::
+
+::: fragment
+-   Understanding this variation is crucial for:
+    -   Study design
+    -   Policy decisions
+    -   Personalized interventions
+    -   Generalization beyond study sample
+:::
+:::
 
 ## Individual Treatment Effect (ITE)
 
@@ -88,6 +108,17 @@ $$ where:
 \- $E[Y(1) | X = x]$ Average outcome if all treated in subgroup
 
 \- $E[Y(0) | X = x]$ Average outcome if all control in subgroup <br>
+
+
+## Case Study
+
+<br>
+
+-   Objective: Is the association between quitting smoking and mortality heterogeneous?
+
+-   Data: 1,629 cigarette smokers who were interviewed in 1971 and 1982 and followed up until 1992.
+
+-   Methods: Estimate heterogeneous treatment effects using causal meta-learners
 
 ## NHEFS data
 
@@ -206,47 +237,19 @@ ATE <- treated_mean - control_mean
 print(paste("IPTW ATE:", round(ATE, 4)))
 ```
 
-## Time to code!
-
-```{r}
-library(countdown)
-```
-
--   A table 1 with the covariates of your choice
-
--   A table 2 with crude and IPTW weighted ATEs
-
-```{r}
-countdown(
-  minutes = 5, style = "play",
-  warn_when = 1,    # Warning color change at 5 minutes
-  bottom = 0,          # Position from top
-  right = 0,        # Position from right
-  font_size = "2em", # Size of the timer
-  color_border = "#1b9e77",        # Border color
-  color_text = "#1b9e77",          # Text color
-  color_running = "#1b9e77",       # Color while running
-  color_warning = "#d95f02",       # Color when warn_when reached
-  color_finished = "#7570b3",      # Color when finished
-  margin = "0.5em",                # Margin around the timer
-  padding = "0.5em"                # Padding within the timer
-  )
-```
-
-
 ## Causal Meta-Learners
 
 <br>
 
+-   Estimates/Predict "ITE" (CATE)
 -   Uses base-learners
 -   Multi-step process
 
-::: {.fragment}
+::: fragment
 ::: callout-tip
 ## Base-learner: Any machine learning algorithm used as a building block in a larger modeling framework
 :::
 :::
-
 
 ## S-Learner
 
@@ -254,9 +257,14 @@ countdown(
 
 <img src="SLearner.png" width="1000"/>
 
+
 <figcaption>The S-learner treats the treatment indicator as just another predictor</figcaption>
 
 </figure>
+
+::: notes
+Causal Inference in Python: Applying Causal Inference in the Tech Industry -- Matheus Facure -- 1, 2023 -- O'Reilly Media.
+:::
 
 ## Implement S-Learner
 
@@ -315,6 +323,35 @@ nhefs %>%
 :::
 :::
 
+## Time to code!
+
+```{r}
+library(countdown)
+```
+
+-   A table 1 with the covariates of your choice
+
+-   A table 2 with crude and IPTW weighted ATEs
+
+-   Use the S-Learner to estimate ATE and ITEs
+
+```{r}
+countdown(
+  minutes = 45, style = "play",
+  warn_when = 1,    # Warning color change at 5 minutes
+  bottom = 0,          # Position from top
+  right = 0,        # Position from right
+  font_size = "2em", # Size of the timer
+  color_border = "#1b9e77",        # Border color
+  color_text = "#1b9e77",          # Text color
+  color_running = "#1b9e77",       # Color while running
+  color_warning = "#d95f02",       # Color when warn_when reached
+  color_finished = "#7570b3",      # Color when finished
+  margin = "0.5em",                # Margin around the timer
+  padding = "0.5em"                # Padding within the timer
+  )
+```
+
 ## S-Learner weakness
 
 <br>
@@ -335,48 +372,395 @@ If the treatment effect is small, some base-learners drop it!
 
 ## Implement T-Learner
 
+```{r}
+# Fit separate models for treated and control groups
+t1_model <- glm(death ~ age + sex + race + as.factor(education) + 
+                smokeintensity + smokeyrs + as.factor(active) + 
+                wt71 + as.factor(exercise),
+                data = nhefs[nhefs$qsmk == 1,], 
+                family = binomial())
+
+t0_model <- glm(death ~ age + sex + race + as.factor(education) + 
+                smokeintensity + smokeyrs + as.factor(active) + 
+                wt71 + as.factor(exercise),
+                data = nhefs[nhefs$qsmk == 0,], 
+                family = binomial())
+
+# Get potential outcomes for everyone
+nhefs$Y1_hat <- predict(t1_model, newdata = nhefs, type = "response")
+nhefs$Y0_hat <- predict(t0_model, newdata = nhefs, type = "response")
+nhefs$ITE <- nhefs$Y1_hat - nhefs$Y0_hat
+```
+
+::: columns
+::: {.column width="50%"}
+```{r}
+# Display the first 10 rows of selected columns
+nhefs %>%
+  select(qsmk, death, Y1_hat, Y0_hat, ITE) %>%
+  head(10) %>%
+  print()
+
+# Calculate and print the Average Treatment Effect
+ate_t <- mean(nhefs$ITE)
+print(paste("T-learner ATE:", round(ate_t, 4)))
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+
+# Plot the distribution of Individual Treatment Effects
+nhefs %>%
+  ggplot(aes(x = ITE)) +
+  geom_density(fill = "lightblue", alpha = 0.5) +
+  geom_vline(xintercept = mean(nhefs$ITE),
+             color = "red", linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Distribution of Individual Treatment Effects",
+       x = "Individual Treatment Effect",
+       y = "Density") +
+  theme(plot.title = element_text(size = 12))
+```
+:::
+:::
+
+## T-Learner weakness
+
+<br>
+
+::: callout-warning
+Few treated -\> poor prediction of outcome among treated!
+:::
+
 ## X-Learner
+
+![](XLearner.png)
+
+<figcaption> X-learner trains outcome models on each treatment group to estimates treatment effects using observed and predicted outcomes, then trains models on these effects to estimate CATE weighted using PS
+</figcaption>
 
 ## Implement X-Learner
 
-## Bootstrap 95% CIs
+```{r}
+# Step 1: Fit separate models for treated and control groups (same as T-learner)
+# First stage models
+x1_model <- glm(death ~ age + sex + race + as.factor(education) + 
+                smokeintensity + smokeyrs + as.factor(active) + 
+                wt71 + as.factor(exercise),
+                data = nhefs[nhefs$qsmk == 1,], 
+                family = binomial())
+
+x0_model <- glm(death ~ age + sex + race + as.factor(education) + 
+                smokeintensity + smokeyrs + as.factor(active) + 
+                wt71 + as.factor(exercise),
+                data = nhefs[nhefs$qsmk == 0,], 
+                family = binomial())
+
+# Step 2: Compute imputed treatment effects
+# For treated group
+treated_idx <- nhefs$qsmk == 1
+nhefs$D1[treated_idx] <- nhefs$death[treated_idx] - 
+                        predict(x0_model, newdata = nhefs[treated_idx,], type = "response")
+
+# For control group
+control_idx <- nhefs$qsmk == 0
+nhefs$D0[control_idx] <- predict(x1_model, newdata = nhefs[control_idx,], type = "response") - 
+                        nhefs$death[control_idx]
+
+# Step 3: Fit second stage models on the imputed treatment effects
+x1_second_model <- glm(D1 ~ age + sex + race + as.factor(education) + 
+                      smokeintensity + smokeyrs + as.factor(active) + 
+                      wt71 + as.factor(exercise),
+                      data = nhefs[treated_idx,])
+
+x0_second_model <- glm(D0 ~ age + sex + race + as.factor(education) + 
+                      smokeintensity + smokeyrs + as.factor(active) + 
+                      wt71 + as.factor(exercise),
+                      data = nhefs[control_idx,])
+
+# Step 4: Get treatment effect predictions
+tau1 <- predict(x1_second_model, newdata = nhefs)
+tau0 <- predict(x0_second_model, newdata = nhefs)
+
+# Step 5: Calculate propensity scores for weighting
+ps_model <- glm(qsmk ~ age + sex + race + as.factor(education) + 
+                smokeintensity + smokeyrs + as.factor(active) + 
+                wt71 + as.factor(exercise),
+                data = nhefs, family = binomial())
+nhefs$ps <- predict(ps_model, type = "response")
+
+# Step 6: Compute final treatment effects using propensity score weighting
+nhefs$ITE <- with(nhefs, ps * tau1 + (1 - ps) * tau0)
+```
+
+::: columns
+::: {.column width="50%"}
+```{r}
+# Display the first 10 rows of selected columns
+nhefs %>%
+  select(qsmk, death, ps, ITE) %>%
+  head(10) %>%
+  print()
+
+# Calculate and print the Average Treatment Effect
+ate_x <- mean(nhefs$ITE)
+print(paste("X-learner ATE:", round(ate_x, 4)))
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+
+# Plot the distribution of Individual Treatment Effects
+nhefs %>%
+  ggplot(aes(x = ITE)) +
+  geom_density(fill = "lightblue", alpha = 0.5) +
+  geom_vline(xintercept = mean(nhefs$ITE),
+             color = "red", linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Distribution of Individual Treatment Effects",
+       x = "Individual Treatment Effect",
+       y = "Density") +
+  theme(plot.title = element_text(size = 12))
+```
+:::
+:::
+
+## Bootstrap 95% CIs {.smaller}
+
+```{r}
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(boot)
+
+# Function to compute X-learner estimates for a bootstrap sample
+x_learner_boot <- function(data, indices) {
+  # Get bootstrap sample
+  boot_data <- data[indices,]
+  
+  # First stage models
+  x1_model <- glm(death ~ age + sex + race + as.factor(education) + 
+                  smokeintensity + smokeyrs + as.factor(active) + 
+                  wt71 + as.factor(exercise),
+                  data = boot_data[boot_data$qsmk == 1,], 
+                  family = binomial())
+  
+  x0_model <- glm(death ~ age + sex + race + as.factor(education) + 
+                  smokeintensity + smokeyrs + as.factor(active) + 
+                  wt71 + as.factor(exercise),
+                  data = boot_data[boot_data$qsmk == 0,], 
+                  family = binomial())
+  
+  # Compute imputed treatment effects
+  treated_idx <- boot_data$qsmk == 1
+  boot_data$D1[treated_idx] <- boot_data$death[treated_idx] - 
+                              predict(x0_model, newdata = boot_data[treated_idx,], 
+                                    type = "response")
+  
+  control_idx <- boot_data$qsmk == 0
+  boot_data$D0[control_idx] <- predict(x1_model, newdata = boot_data[control_idx,], 
+                                     type = "response") - 
+                              boot_data$death[control_idx]
+  
+  # Second stage models
+  x1_second_model <- glm(D1 ~ age + sex + race + as.factor(education) + 
+                        smokeintensity + smokeyrs + as.factor(active) + 
+                        wt71 + as.factor(exercise),
+                        data = boot_data[treated_idx,])
+  
+  x0_second_model <- glm(D0 ~ age + sex + race + as.factor(education) + 
+                        smokeintensity + smokeyrs + as.factor(active) + 
+                        wt71 + as.factor(exercise),
+                        data = boot_data[control_idx,])
+  
+  # Get predictions
+  tau1 <- predict(x1_second_model, newdata = data)  
+  tau0 <- predict(x0_second_model, newdata = data)
+  
+  # Propensity scores
+  ps_model <- glm(qsmk ~ age + sex + race + as.factor(education) + 
+                  smokeintensity + smokeyrs + as.factor(active) + 
+                  wt71 + as.factor(exercise),
+                  data = boot_data, family = binomial())
+  ps <- predict(ps_model, newdata = data, type = "response")
+  
+  # Final ITE estimates
+  ite <- ps * tau1 + (1 - ps) * tau0
+  
+  # Return both ATE and ITEs
+  return(c(mean(ite), ite))
+}
+```
+
+```{r}
+#| warning: false
+#| message: false
+
+# Run bootstrap
+set.seed(123)
+n_boot <- 1000
+boot_results <- boot(nhefs, x_learner_boot, R = n_boot)
+
+# Get ATE confidence interval
+ate_ci <- boot.ci(boot_results, type = "perc", index = 1)
+
+# Get ITE confidence intervals
+ite_cis <- t(sapply(2:(nrow(nhefs) + 1), function(i) {
+  ci <- boot.ci(boot_results, type = "perc", index = i)$percent[4:5]
+  return(ci)
+}))
+
+# Add CIs to dataset
+nhefs$ITE_lower <- ite_cis[,1]
+nhefs$ITE_upper <- ite_cis[,2]
+
+# Print ATE with CI
+cat("Average Treatment Effect:", round(boot_results$t0[1], 4), "\n")
+cat("95% CI: [", round(ate_ci$percent[4], 4), ",", 
+    round(ate_ci$percent[5], 4), "]\n")
+```
+
+## Bootstrap Visualization {.smaller}
+
+```{r}
+#| warning: false
+#| message: false
+#| fig-width: 10
+#| fig-height: 6
+
+# Add significance indicator to the dataset
+nhefs <- nhefs %>%
+  mutate(
+    significant = !(ITE_lower <= 0 & ITE_upper >= 0),  # True if CI doesn't cross zero
+    effect_type = case_when(
+      significant & ITE > 0 ~ "Significant Positive",
+      significant & ITE < 0 ~ "Significant Negative",
+      TRUE ~ "Not Significant"
+    )
+  ) %>%
+  arrange(ITE) %>%
+  mutate(rank = row_number())
+
+# Create the improved plot
+ggplot(nhefs, aes(x = rank, y = ITE)) +
+  # Add confidence interval ribbon
+  geom_ribbon(aes(ymin = ITE_lower, ymax = ITE_upper),
+              alpha = 0.15, fill = "grey50") +
+  # Add zero reference line
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", alpha = 0.5) +
+  # Add individual effects with color
+  geom_point(aes(color = effect_type), size = 1) +
+  # Use a better color scheme
+  scale_color_manual(values = c(
+    "Not Significant" = "grey50",
+    "Significant Negative" = "#D95F02",
+    "Significant Positive" = "#1B9E77"
+  )) +
+  # Improve theme
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9)
+  ) +
+  # Better labels
+  labs(
+    title = "Ranked Individual Treatment Effects with 95% Bootstrap CIs",
+    x = "Rank",
+    y = "Individual Treatment Effect",
+    color = "Effect Type"
+  ) +
+  # Set axis limits with some padding
+  scale_y_continuous(limits = c(
+    min(nhefs$ITE_lower, na.rm = TRUE) - 0.05,
+    max(nhefs$ITE_upper, na.rm = TRUE) + 0.05
+  ))
+
+# Print summary of significant effects
+sig_pos <- nhefs %>% filter(effect_type == "Significant Positive") %>% nrow()
+sig_neg <- nhefs %>% filter(effect_type == "Significant Negative") %>% nrow()
+total <- nrow(nhefs)
+
+cat(sprintf("\nOut of %d individuals:", total))
+cat(sprintf("\n- %d (%.1f%%) have significant positive effects", 
+            sig_pos, 100 * sig_pos/total))
+cat(sprintf("\n- %d (%.1f%%) have significant negative effects", 
+            sig_neg, 100 * sig_neg/total))
+```
+
+::: {style="font-size: 0.6em;"}
+Note: Significant effects (orange) have 95% bootstrap CIs that do not include zero
+:::
 
 ## ML base learners
 
--   Penalised regression
+-   Penalised regression (parametric)
 
--   Tree-based methods
+-   Tree-based methods (non-parametric)
 
--   Neural networks
+-   Neural networks (non-parametric)
+
+-   Support vector machines (non-parametric)
 
 ## Overfitting
 
-## Implement T-Learner with XGBoost
+![](Overfitting.png) [^1]
 
-## CATE presentations
-
--   histogram
-
--   ranked ITEs with 95% CIs colored in
-
--   partial dependence plots
+[^1]: Ref: https://carpentries-incubator.github.io/ml4bio-workshop/04-trees-overfitting/index.html
 
 ## Which Causal Meta-Learner to choose?
 
 ::: {style="font-size: 75%;"}
-
-| Scenario | S-Learner | T-Learner | X-Learner |
-|----------|-----------|-----------|------------|
-| **Sample Size** |
-| Large Sample | Good | Good | Good |
-| Small Sample | Good | May Struggle | May Struggle |
-| **Treatment Effect** |
-| Large Effects | Good | Good | Good |
-| Small Effects | May Struggle | Good | Good |
-| **Data Balance** |
-| Balanced Data | Good | Good | Good |
-| Imbalanced Data | Good | May Struggle | Good |
-
+| Scenario             | S-Learner    | T-Learner    | X-Learner    |
+|----------------------|--------------|--------------|--------------|
+| **Sample Size**      |              |              |              |
+| Large Sample         | OK           | OK           | OK           |
+| Small Sample         | OK           | May Struggle | May Struggle |
+| **Treatment Effect** |              |              |              |
+| Large Effects        | OK           | OK           | OK           |
+| Small Effects        | May Struggle | OK           | OK           |
+| **Data Balance**     |              |              |              |
+| Balanced Data        | OK           | OK           | OK           |
+| Imbalanced Data      | OK           | May Struggle | OK           | 
 :::
+
+## Time to code!
+
+```{r}
+library(countdown)
+```
+
+-   Use the T- or X-Learner to estimate ATE and ITEs with 95% CIs
+
+-   Choose your own base-learner(s)
+
+-   Consider how to avoid overfitting
+
+-   Identify factors (e.g. is age?) associated with effect heterogeneity
+
+```{r}
+countdown(
+  minutes = 75, style = "play",
+  warn_when = 1,    # Warning color change at 5 minutes
+  bottom = 0,          # Position from top
+  right = 0,        # Position from right
+  font_size = "2em", # Size of the timer
+  color_border = "#1b9e77",        # Border color
+  color_text = "#1b9e77",          # Text color
+  color_running = "#1b9e77",       # Color while running
+  color_warning = "#d95f02",       # Color when warn_when reached
+  color_finished = "#7570b3",      # Color when finished
+  margin = "0.5em",                # Margin around the timer
+  padding = "0.5em"                # Padding within the timer
+  )
+```
 
 ## What have we learned?
