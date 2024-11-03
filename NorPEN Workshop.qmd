@@ -1,5 +1,5 @@
 ---
-title: "Lets Play with Causal Meta-Learners"
+title: "Let's Play with Causal Meta-Learners"
 author: Anders Hviid
 date: November 18, 2024
 format: 
@@ -25,7 +25,7 @@ slide-number: true
 -   15:00-15:45 Code session II
 -   15:45-16:00 Break
 -   16:00-16:30 Code session II continued
--   16:30       Wrapping up
+-   16:30-      Wrapping up
 
 
 
@@ -86,7 +86,7 @@ We can never observe both $Y_i(1)$ and $Y_i(0)$ for the same individual
 Formal Definition:
 
 $$
-\text{ATE} = E[Y(1) - Y(0)] = E[Y(1)] - E(Y(0))
+\text{ATE} = E[Y(1) - Y(0)] = E[Y(1)] - E[Y(0)]
 $$ where:
 
 \- $Y(1)$ potential outcome under treatment
@@ -129,6 +129,7 @@ library(tidyverse)
 library(causaldata)
 library(tableone)
 library(gt)
+data("nhefs")
 ```
 
 ```{r}
@@ -139,9 +140,6 @@ glimpse(nhefs)
 
 ```{r}
 
-
-# Load the NHEFS dataset
-data("nhefs")
 
 # Define the variables to include in the table
 vars <- c("age", "sex", "race", "education", "smokeintensity", "smokeyrs", "active", "wt71", "exercise")
@@ -697,7 +695,7 @@ cat(sprintf("\n- %d (%.1f%%) have significant negative effects",
 ```
 
 ::: {style="font-size: 0.6em;"}
-Note: Significant effects (orange) have 95% bootstrap CIs that do not include zero
+Note: Significant effects (orange and green) have 95% bootstrap CIs that do not include zero
 :::
 
 ## ML base learners
@@ -764,3 +762,11 @@ countdown(
 ```
 
 ## What have we learned?
+
+- Understanding of heterogeneous treatment effects and why they matter.
+- Familiarity with causal meta-learners: S-Learner, T-Learner, X-Learner.
+- Practical experience implementing these learners in R.
+- Awareness of the strengths and weaknesses of each method.
+- Insight into avoiding overfitting and selecting appropriate base learners.
+
+
